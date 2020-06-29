@@ -3,30 +3,38 @@
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "generic/fedora32"
-  config.vm.network "public_network"
+  config.vm.box = "ubuntu/bionic64"
+
+  config.vm.base_mac = nil
+
+  # config.vm.network "public_network"
+
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "1024"
+    vb.memory = "2048"
     vb.cpus = "2"
+    vb.linked_clone = true
   end
 
   config.vm.define "gfs01" do |gfs|
     gfs.vm.hostname = "gfs01"
+    gfs.vm.network "private_network", ip: "192.168.100.11"
   end
 
   config.vm.define "gfs02" do |gfs|
     gfs.vm.hostname = "gfs02"
+    gfs.vm.network "private_network", ip: "192.168.100.12"
   end
 
-  # config.vm.define "gfs02" do |gfs|
-  #   gfs.vm.box = "generic/fedora32"
-  #   gfs.vm.hostname = "gfs02"
-  #   gfs.vm.network "private_network", ip: "192.168.100.22", virtualbox__intnet: "racnet"
-  #   gfs.vm.provider "virtualbox" do |vb|
-  #     vb.memory = "1024"
-  #     vb.cpus = "2"
-  #   end
-  # end
+  config.vm.define "gfsclient" do |gfs|
+    gfs.vm.hostname = "gfsclient"
+    gfs.vm.network "private_network", ip: "192.168.100.13"
+  end
+
+  config.vm.provision "shell", inline: <<-EOT
+    grep gfs01 || echo "192.168.100.11  gfs01" >> /etc/hosts
+    grep gfs02 || echo "192.168.100.12  gfs02" >> /etc/hosts
+    grep gfsclient || echo "192.168.100.13  gfsclient" >> /etc/hosts
+  EOT
 
 end
 
